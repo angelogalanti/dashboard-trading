@@ -76,7 +76,36 @@ export interface BacktestSystem {
   type: "live" | "forward";
   levNorm: number;
   metrics: BacktestSystemMetrics;
+  metricsIs?: BacktestSystemMetrics | null;
+  metricsOos?: BacktestSystemMetrics | null;
   daily: BacktestDailyPoint[];
+  advancedStats?: {
+    longPnL: number;
+    shortPnL: number;
+    totalTurnover: number;
+    totalCost: number;
+    profitFactor: number;
+    dailyWinRate: number;
+    bestDay: number;
+    worstDay: number;
+    avgWin: number;
+    avgLoss: number;
+    timeInMarket: number;
+    avgLeverage: number;
+    maxLeverage: number;
+    sortino: number;
+    ulcerIndex: number;
+    skewness: number;
+    kurtosis: number;
+    coins: Record<string, number>;
+    dayOfWeekPnl: Record<string, number>;
+    var95: number;
+    cvar95: number;
+    currentDrawdown: number;
+    maxDrawdownDays: number;
+    avgDrawdownDays: number;
+    kellyFraction: number;
+  };
 }
 
 export interface BacktestData {
@@ -90,6 +119,19 @@ export interface BacktestData {
     daily: BacktestDailyPoint[];
   };
   systems: BacktestSystem[];
+  donchianRaw?: DonchianRawData;
+  stddevRaw?: DonchianRawData;
+  volsqueezeRaw?: DonchianRawData;
+}
+
+export interface DonchianRawData {
+  name: string;
+  params: Record<string, string | number | boolean>;
+  startDate: string;
+  endDate: string;
+  nDays: number;
+  metrics: BacktestSystemMetrics;
+  daily: BacktestDailyPoint[];
 }
 
 export interface CoinSummary {

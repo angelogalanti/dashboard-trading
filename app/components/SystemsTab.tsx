@@ -36,6 +36,12 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
   const liveSystems = systems.filter((s) => s.type === "live");
   const forwardSystems = systems.filter((s) => s.type === "forward");
 
+  // weights from env
+  const wMR = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_BTC_MR || "0.368");
+  const wTrend = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_TREND || "0.287");
+  const wStdDev = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_STDDEV || "0.172");
+  const wDonchian = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_DONCHIAN || "0.173");
+
   // Build comparison data: merge all systems into a unified timeline
   const allTimes = new Set<number>();
   systems.forEach((s) => s.history.forEach((h) => allTimes.add(h.time)));
@@ -60,14 +66,12 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
       point[s.id] = val;
     });
 
-    // Calculate Mega-Sistema Portfolio return (weighted sum of live active systems)
-    // weights: MR 32% / Trend 25% / StdDev 15% / Donchian 15% (normalized to sum to 1.0)
     let megaVal = 0;
     const WEIGHTS: Record<string, number> = {
-      btc_mean_reversion: 0.32 / 0.87,
-      trend_multiasset: 0.25 / 0.87,
-      stddev: 0.15 / 0.87,
-      donchian: 0.15 / 0.87,
+      btc_mean_reversion: wMR,
+      trend_multiasset: wTrend,
+      stddev: wStdDev,
+      donchian: wDonchian,
     };
     Object.keys(WEIGHTS).forEach((id) => {
       megaVal += (point[id] ?? 0) * WEIGHTS[id];
@@ -87,7 +91,7 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
             <span>Mega-Sistema Combinato (Forward Test Paper)</span>
           </div>
           <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider hidden sm:block">
-            Pesi: MR 36.8% · Trend 28.7% · StdDev 17.2% · Donchian 17.2%
+            Pesi (da ENV): MR {wMR * 100}% · Trend {wTrend * 100}% · StdDev {wStdDev * 100}% · Donchian {wDonchian * 100}%
           </div>
         </div>
         <div className="h-64">

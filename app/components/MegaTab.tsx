@@ -17,6 +17,7 @@ import type {
   EquitySnapshot,
   Position,
   CoinSummary,
+  SystemData,
 } from "@/app/lib/types";
 import { fmt, sumClosedPnl, buildUnitizedChartSeries } from "@/app/lib/helpers";
 import { Card, MetricCard, ChartTooltip } from "@/app/components/ui";
@@ -30,13 +31,14 @@ interface MegaTabProps {
   fills: Fill[];
   history: EquitySnapshot[];
   transfers: { time: number; amount: number }[];
+  systems: SystemData[];
 }
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export default function MegaTab({ account, fills, history, transfers }: MegaTabProps) {
+export default function MegaTab({ account, fills, history, transfers, systems }: MegaTabProps) {
   const [activeTab2026, setActiveTab2026] = useState<"coins" | "fills">("coins");
   const [isClosedExpanded, setIsClosedExpanded] = useState(false);
 
@@ -64,9 +66,11 @@ export default function MegaTab({ account, fills, history, transfers }: MegaTabP
     return drawdownSeries.length > 0 ? Math.max(...drawdownSeries.map((d) => -d.drawdown)) : 0;
   }, [drawdownSeries]);
 
-  // Filter 2026 fills
-  const START_OF_2026_MS = 1767225600000; // 2026-01-01T00:00:00Z
-  const fills2026 = fills.filter((f) => f.time >= START_OF_2026_MS);
+  // Filter 2026 / Go-Live fills
+  const GO_LIVE_MS = process.env.NEXT_PUBLIC_GO_LIVE_DATE
+    ? new Date(process.env.NEXT_PUBLIC_GO_LIVE_DATE).getTime()
+    : 1767225600000;
+  const fills2026 = fills.filter((f) => f.time >= GO_LIVE_MS);
 
   // Summary statistics for 2026
   const totalRealizedPnl2026 = fills2026.reduce(
@@ -123,6 +127,35 @@ export default function MegaTab({ account, fills, history, transfers }: MegaTabP
           sub={`Peak: $${fmt(peakAbsoluteEquity)}`}
         />
       </div>
+
+      {/* ---- NEW: Drawdown Contribution Card ---- */}
+      {systems && systems.length > 0 && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2 text-slate-300 text-sm font-medium border-b border-slate-700/40 pb-3 mb-4">
+            <i className="fas fa-chart-pie text-indigo-400" />
+            <span>Drawdown Contribution dei Singoli Sistemi (Forward Test)</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {systems.map(s => {
+              const recentDd = s.history.length > 0 ? s.history[s.history.length - 1].drawdown : 0;
+              return (
+                <div key={s.id} className="bg-slate-800/40 rounded-md p-3 border border-slate-700/30">
+                  <div className="text-xs text-slate-400 mb-1">{s.name}</div>
+                  <div className={`text-base font-mono font-semibold ${recentDd < -2 ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {recentDd.toFixed(2)}%
+                  </div>
+                  <div className="w-full bg-slate-700/50 h-1 mt-2 rounded overflow-hidden">
+                    <div 
+                      className={`h-full ${recentDd < -2 ? 'bg-red-500' : 'bg-emerald-500'}`} 
+                      style={{ width: `${Math.min(Math.abs(recentDd), 100)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* ---- MIDDLE: Open Positions Card ---- */}
       <Card className="p-0 overflow-hidden">
@@ -240,7 +273,7 @@ export default function MegaTab({ account, fills, history, transfers }: MegaTabP
         >
           <div className="flex items-center gap-2 text-slate-300 text-sm font-medium">
             <i className="fas fa-box-archive text-indigo-400" />
-            <span>Sintesi Posizioni Chiuse (dal 2026)</span>
+            <span>Sintesi Posizioni Chiuse (da Go-Live)</span>
             <i className={`fas fa-chevron-${isClosedExpanded ? "up" : "down"} text-xs text-slate-500 ml-1.5`} />
           </div>
 
@@ -284,7 +317,7 @@ export default function MegaTab({ account, fills, history, transfers }: MegaTabP
             {fills2026.length === 0 ? (
               <div className="px-5 py-8 text-slate-500 text-sm text-center">
                 <i className="fas fa-ban mr-2" />
-                Nessuna operazione chiusa a partire dal 2026
+                Nessuna operazione chiusa a partire dal Go-Live
               </div>
             ) : activeTab2026 === "coins" ? (
               <div className="overflow-x-auto">

@@ -6,8 +6,8 @@ import { createRequire } from "module";
 export const dynamic = "force-dynamic";
 
 const DB_PATH = path.join(process.cwd(), "data", "equity.db");
-const HL_API = "https://api.hyperliquid.xyz/info";
-const USER = "0xB9b7A899C2A6E6BDcc0B87BA2148C1dF046A07e9";
+const HL_API = process.env.NEXT_PUBLIC_HL_API || "https://api.hyperliquid.xyz/info";
+const USER = process.env.NEXT_PUBLIC_HL_USER || "0xB9b7A899C2A6E6BDcc0B87BA2148C1dF046A07e9";
 
 export async function GET() {
   try {
@@ -58,7 +58,10 @@ export async function GET() {
             }
 
             // Keep only transfers relevant to this snapshot run (filter 2024 out)
-            if (amount !== 0 && item.time >= 1767225600000) {
+            const goLiveMs = process.env.NEXT_PUBLIC_GO_LIVE_DATE 
+              ? new Date(process.env.NEXT_PUBLIC_GO_LIVE_DATE).getTime() 
+              : 1767225600000;
+            if (amount !== 0 && item.time >= goLiveMs) {
               transfers.push({
                 time: item.time,
                 amount,

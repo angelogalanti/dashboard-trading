@@ -12,7 +12,10 @@ import type {
 import MegaTab from "@/app/components/MegaTab";
 import SystemsTab from "@/app/components/SystemsTab";
 import BacktestTab from "@/app/components/BacktestTab";
+import DonchianTab from "@/app/components/DonchianTab";
+import SummaryTab from "@/app/components/SummaryTab";
 import DataStatusTab from "@/app/components/DataStatusTab";
+import MetaV2Tab from "@/app/components/MetaV2Tab";
 
 /* ------------------------------------------------------------------ */
 /*  Main dashboard                                                     */
@@ -27,7 +30,8 @@ export default function Dashboard() {
   const [backtest, setBacktest] = useState<BacktestData | null>(null);
   const [dataStatus, setDataStatus] = useState<DataStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeMainTab, setActiveMainTab] = useState<"mega" | "systems" | "backtest" | "datastatus">("mega");
+  const [metaV2, setMetaV2] = useState<any | null>(null);
+  const [activeMainTab, setActiveMainTab] = useState<"mega" | "systems" | "backtest" | "donchian" | "summary" | "datastatus" | "metav2">("mega");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -66,6 +70,7 @@ export default function Dashboard() {
           setDataStatus(await statusRes.json());
         }
       } catch { /* silently skip */ }
+      try { const metaRes = await fetch("/api/meta-v2"); if (metaRes.ok) setMetaV2(await metaRes.json()); } catch { /* generated research data optional */ }
 
       setError(null);
     } catch (err: any) {
@@ -96,7 +101,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Tabs Control */}
-      <div className="grid grid-cols-1 md:grid-cols-4 border-b border-slate-700/40 mb-6 text-sm font-semibold font-medium">
+      <div className="grid grid-cols-1 md:grid-cols-7 border-b border-slate-700/40 mb-6 text-sm font-semibold font-medium">
         <button
           onClick={() => setActiveMainTab("mega")}
           className={`px-5 py-3 border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
@@ -131,6 +136,32 @@ export default function Dashboard() {
           <span>Backtest Storico</span>
         </button>
         <button
+          onClick={() => setActiveMainTab("donchian")}
+          className={`px-5 py-3 border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            activeMainTab === "donchian"
+              ? "border-indigo-500 text-indigo-400"
+              : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <i className="fas fa-chart-bar" />
+          <span>Sistemi (Standalone)</span>
+        </button>
+        <button
+          onClick={() => setActiveMainTab("summary")}
+          className={`px-5 py-3 border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            activeMainTab === "summary"
+              ? "border-indigo-500 text-indigo-400"
+              : "border-transparent text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          <i className="fas fa-table" />
+          <span>Riepilogo Sistemi</span>
+        </button>
+        <button
+          onClick={() => setActiveMainTab("metav2")}
+          className={`px-5 py-3 border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${activeMainTab === "metav2" ? "border-indigo-500 text-indigo-400" : "border-transparent text-slate-400 hover:text-slate-200"}`}
+        ><i className="fas fa-flask" /><span>Meta v2 (Paper)</span></button>
+        <button
           onClick={() => setActiveMainTab("datastatus")}
           className={`px-5 py-3 border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
             activeMainTab === "datastatus"
@@ -149,6 +180,7 @@ export default function Dashboard() {
           fills={fills}
           history={history}
           transfers={transfers}
+          systems={systems}
         />
       )}
 
@@ -159,6 +191,26 @@ export default function Dashboard() {
       {activeMainTab === "backtest" && (
         <BacktestTab backtest={backtest} />
       )}
+
+      {activeMainTab === "donchian" && backtest?.donchianRaw && (
+        <DonchianTab
+          rawSystems={{
+            donchian: backtest.donchianRaw,
+            ...(backtest.stddevRaw ? { stddev: backtest.stddevRaw } : {}),
+            ...(backtest.volsqueezeRaw ? { volsqueeze: backtest.volsqueezeRaw } : {}),
+          }}
+          backtestSystems={{
+            donchian: backtest.systems?.find((s) => s.id === "donchian"),
+            ...(backtest.stddevRaw ? { stddev: backtest.systems?.find((s) => s.id === "stddev") } : {}),
+            ...(backtest.volsqueezeRaw ? { volsqueeze: backtest.systems?.find((s) => s.id === "volsqueeze") } : {}),
+          }}
+        />
+      )}
+
+      {activeMainTab === "summary" && (
+        <SummaryTab backtest={backtest} />
+      )}
+      {activeMainTab === "metav2" && <MetaV2Tab data={metaV2} />}
 
       {activeMainTab === "datastatus" && (
         <DataStatusTab dataStatus={dataStatus} />
