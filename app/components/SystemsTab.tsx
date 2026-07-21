@@ -34,13 +34,12 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
   if (systems.length === 0) return null;
 
   const liveSystems = systems.filter((s) => s.type === "live");
+  const benchSystems = systems.filter((s) => s.type === "bench");
   const forwardSystems = systems.filter((s) => s.type === "forward");
 
-  // weights from env
-  const wMR = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_BTC_MR || "0.368");
-  const wTrend = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_TREND || "0.287");
-  const wStdDev = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_STDDEV || "0.172");
-  const wDonchian = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_DONCHIAN || "0.173");
+  // weights for Live-v2
+  const wStdDev = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_STDDEV || "0.63");
+  const wDonchian = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_DONCHIAN || "0.37");
 
   // Build comparison data: merge all systems into a unified timeline
   const allTimes = new Set<number>();
@@ -68,8 +67,6 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
 
     let megaVal = 0;
     const WEIGHTS: Record<string, number> = {
-      btc_mean_reversion: wMR,
-      trend_multiasset: wTrend,
       stddev: wStdDev,
       donchian: wDonchian,
     };
@@ -83,15 +80,15 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
 
   return (
     <div className="mt-6 space-y-6">
-      {/* 1. Mega-Sistema Chart Card */}
+      {/* 1. Book LIVE-v2 Chart Card */}
       <Card className="p-6">
         <div className="flex items-center justify-between border-b border-slate-700/40 pb-3 mb-6">
           <div className="flex items-center gap-2 text-slate-300 text-base font-semibold">
             <i className="fas fa-wallet text-indigo-400" />
-            <span>Mega-Sistema Combinato (Forward Test Paper)</span>
+            <span>Book LIVE-v2 (Donchian + StdDev)</span>
           </div>
           <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider hidden sm:block">
-            Pesi (da ENV): MR {wMR * 100}% · Trend {wTrend * 100}% · StdDev {wStdDev * 100}% · Donchian {wDonchian * 100}%
+            Pesi Live-v2: Donchian {wDonchian * 100}% · StdDev {wStdDev * 100}%
           </div>
         </div>
         <div className="h-64">
@@ -231,6 +228,7 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
 
       {/* System summary cards */}
       {[{ label: "Sistemi Live", icon: "bolt", color: "text-emerald-400", list: liveSystems },
+        { label: "Panchina / Scartati", icon: "box-archive", color: "text-rose-400", list: benchSystems },
         { label: "Forward Testing", icon: "flask", color: "text-amber-400", list: forwardSystems },
       ].map(({ label, icon, color, list }) => list.length > 0 && (
         <div key={label}>

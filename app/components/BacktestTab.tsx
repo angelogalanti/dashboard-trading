@@ -673,9 +673,9 @@ export default function BacktestTab({ backtest }: BacktestTabProps) {
                       </td>
                       <td className="text-center px-4 py-2.5">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                          s.type === "live" ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"
+                          s.type === "live" ? "bg-emerald-500/10 text-emerald-400" : s.type === "bench" ? "bg-rose-500/10 text-rose-400" : "bg-amber-500/10 text-amber-400"
                         }`}>
-                          {s.type === "live" ? "LIVE" : "FORWARD"}
+                          {s.type === "live" ? "LIVE" : s.type === "bench" ? "BENCH" : "FORWARD"}
                         </span>
                       </td>
                       <td className={`text-right font-mono px-4 py-2.5 ${s.metrics.cagr >= 0 ? "text-emerald-400" : "text-red-400"}`}>

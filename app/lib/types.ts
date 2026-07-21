@@ -41,7 +41,7 @@ export interface SystemHistoryPoint {
 export interface SystemData {
   id: string;
   name: string;
-  type: "live" | "forward";
+  type: "live" | "forward" | "bench";
   forwardCutoff: string;
   lastProcessedTs: string;
   nDaysProcessed: number;
@@ -73,7 +73,7 @@ export interface BacktestSystemMetrics {
 export interface BacktestSystem {
   id: string;
   name: string;
-  type: "live" | "forward";
+  type: "live" | "forward" | "bench";
   levNorm: number;
   metrics: BacktestSystemMetrics;
   metricsIs?: BacktestSystemMetrics | null;
