@@ -119,6 +119,7 @@ export interface BacktestData {
     daily: BacktestDailyPoint[];
   };
   systems: BacktestSystem[];
+  rawSystems?: Record<string, DonchianRawData>;
   donchianRaw?: DonchianRawData;
   stddevRaw?: DonchianRawData;
   volsqueezeRaw?: DonchianRawData;

@@ -38,8 +38,8 @@ export default function SystemsTab({ systems }: SystemsTabProps) {
   const forwardSystems = systems.filter((s) => s.type === "forward");
 
   // weights for Live-v2
-  const wStdDev = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_STDDEV || "0.63");
-  const wDonchian = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_DONCHIAN || "0.37");
+  const wStdDev = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_STDDEV || "0.6292");
+  const wDonchian = parseFloat(process.env.NEXT_PUBLIC_WEIGHT_DONCHIAN || "0.3708");
 
   // Build comparison data: merge all systems into a unified timeline
   const allTimes = new Set<number>();
